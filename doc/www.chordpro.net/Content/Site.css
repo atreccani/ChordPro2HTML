@@ -1,0 +1,132 @@
+/*Main
+========================== */
+
+body 
+{
+    font-family: Verdana;
+    font-size:10pt;
+    background-image:url(/Content/background.jpg);
+}
+
+
+a, a:visited, a:active
+{
+    text-decoration:none;
+    color:Olive;
+}
+
+a:hover 
+{
+    text-decoration:underline;
+	color:Olive;
+}
+
+
+.Header
+{
+    height:150px;
+    background-image: url(/Content/Header.jpg);
+    text-align:center;
+    vertical-align:middle;
+}
+
+.Header h1
+{
+    color:White;
+    
+}
+.Content
+{
+	min-height:600px;
+    background-color:White;
+    padding:25px 25px 25px 25px;
+}
+
+.Error
+{
+	color:Red;
+}
+
+.hidden
+{
+	display:none;
+}
+
+
+/*Question
+=========================== */
+
+.Question
+{
+}
+
+.Results
+{
+    min-height:360px;
+}
+
+#loading
+{
+	display:none;	
+}
+    
+/*Chordpro
+=========================== */
+
+.Chordpro .Chord
+{
+    font-weight:bold;
+}
+
+.Chordpro .Valid .Chord
+{
+	font-weight: bold;
+	color:Black;
+}
+.Chordpro .Invalid .Chord 
+{
+    font-weight:bold;
+    color:Gray;
+}
+
+.Chordpro .Section .Chorus 
+{
+    margin-left:20px;
+    margin-top:10pt;
+}
+
+.Chordpro .Section .Bridge
+{
+    margin-left:15px;
+    margin-top:10pt;
+}
+
+.Chordpro .Line 
+{
+    margin-top:3pt;
+}
+
+.Chordpro .Section .Verse 
+{
+    margin-top:10pt;
+}
+
+.Chordpro .ChordType .SpecialChars,
+.SongDetails .ChordType .SpecialChars
+{
+    vertical-align:super;
+    font-size:6pt;
+}
+
+.Chordpro .Sign,
+.SongDetails .Sign
+{
+    vertical-align:super;
+    font-size:6pt;
+}
+
+.SongDetails
+{
+    font-size:8pt;
+}
+
