@@ -1,80 +1,73 @@
-#include <codecvt>
 #include <fstream>
 #include <iostream>
-#include <sstream>
+#include <vector>
+
+#include <windows.h>
+#include <fcntl.h>  
+#include <io.h>  
+#include <stdio.h>
+#include <strsafe.h>
 
 #include "../version.h"
 #include "chordpro_parser.h"
 #include "html_writer.h"
 
-bool load_file(string &file_name, ChordProParser *parser)
+
+
+using namespace std;
+
+typedef struct {
+	wstring		name;
+	uint64_t	size;
+} FileInfo;
+
+void getDirFiles(wstring folder, vector<FileInfo> &listing)
 {
-	// Read file in UTF-8
-	wifstream wif(file_name);
-	wif.imbue(std::locale(locale::empty(), new codecvt_utf8<wchar_t>));
+	FileInfo file;
+	wstring search_path = folder + L"/*.*";
+	WIN32_FIND_DATA fd; 
+	LARGE_INTEGER filesize;
 
-	// Open the file for reading
-	if (!wif.is_open()) {
-		cout << "Unable to open file" << endl;
+	HANDLE hFind = ::FindFirstFile(search_path.c_str(), &fd); 
+	if(hFind != INVALID_HANDLE_VALUE) { 
+		do {
+			// read all (real) files in current folder
+			// , delete '!' read other 2 default folder . and ..
+			if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
+				file.name = fd.cFileName;
+
+				filesize.LowPart = fd.nFileSizeLow;
+				filesize.HighPart = fd.nFileSizeHigh;
+				file.size = filesize.QuadPart;
+
+				listing.push_back(file);
+			}
+		}while(::FindNextFile(hFind, &fd)); 
+		::FindClose(hFind); 
 	}
-
-	std::wstringstream wss;
-	wss << wif.rdbuf();
-
-	/*	To be a valid ChordPro file it should be
-	- less than 100k (it's a plain text file!)
-	- Contain title directive in first 1k
-	*/
-	if (wif.tellg() > (100 * 1024)) {
-		return false;
-	}
-
-	if (!parser->parseTitle()) {
-		return false;
-	}
-
-	return true;
 }
-
-void getDir(const char* d, list<string> & f)
-{
-	FILE* pipe =  NULL;
-	string pCmd = "dir /B /S " + string(d);
-	char buf[256];
-
-	if( NULL == (pipe = _popen(pCmd.c_str(),"rt")))
-	{
-		cout<<"Shit"<<endl;
-		return;
-	}
-
-	while (!feof(pipe))
-	{
-		if(fgets(buf,256,pipe) != NULL)
-		{
-			f.push_back(string(buf));
-		}
-
-	}
-
-	_pclose(pipe);
-
-}
-
-
 
 void fill_chordpro_file_list(list <ChordProParser *> &list_ref)
 {
-	list<string> files;
+	wstring pathIn = L"../default_in";
+	vector<FileInfo> filesInfo;
 
-	getDir("../default_in", files);
+	// List of all files in input directory (not necessarily all are chordpro files)
+	getDirFiles(pathIn, filesInfo);
 
-	for (int i = 0; i < files.size(); ++i) {
-		string sName = files.at(i).filePath();
-		ChordProParser *parser = new ChordProParser();
+	std::vector<FileInfo>::iterator it;
+	for (it = filesInfo.begin(); it != filesInfo.end(); ++it) {
 
-		if (load_file(sName, parser)) {
-			list_ref.append(parser);
+		// A valid ChordPro file it should be less than 100k (it's a plain text file!)
+		if (it->size < (100 * 1024)) {
+			ChordProParser *parser = new ChordProParser(pathIn + L"/" + it->name);
+
+			if (parser->loadFile()) {
+				// To be a valid ChordPro file it should contain title directive in first 1k
+				if (parser->parseTitle()) {
+					list_ref.push_back(parser);
+				}
+			}
 		}
 	}
 }
@@ -83,52 +76,45 @@ void fill_chordpro_file_list(list <ChordProParser *> &list_ref)
 void createSVG(ChordProParser *act_song)
 {
 	// Set the destination .svg file name changing extension to the source .pro file name
-	const string path = act_song->m_fileinfo.path() + "/" + act_song->m_fileinfo.completeBaseName() + "_pre.svg";
+	const string path = "../default_out/test.html";
 
 	// Parse all elements of the song
 	act_song->parseAll();
 	act_song->removeMultipleSpaces();
 
 
-	HTMLWrite painter;
+	HTMLWrite writer;
 
-
-	// get actual size QPaintDevice 
-	stdout << "generator.width:  " << generator.width() << endl;
-	stdout << "generator.height: " << generator.height() << endl;
-
-	// painter.scale(0.5, 0.5);
-	paint_size = painter.paint(act_song);
-	painter.end();
 
 }
-
 
 int main(int argc, char *argv[])
 {
 	list <ChordProParser *> song_list;
 
+	// set output console in unicode mode (UTF16)
+	_setmode(_fileno(stdout), _O_WTEXT);
+
+
 	// Set the logging file
 	// check which a path to file you use 
-	logFile.reset(new QFile("../Work/log.txt"));
-	// Open the file logging
-	logFile.data()->open(QFile::Append | QFile::Text);
+	std::wofstream logFile(
+		"../default_out/log.txt", std::ios_base::out | std::ios_base::app);
 
-	// Windows specific: use Code Page 850 (Western Europe) for console writing
-	stdout.setCodec("CP-850");
-
-	// Fill a list of valid ChordPro files, each file will also be fully loaded into memory (as a string)
+	// Fill a list of valid ChordPro files, each file will also be fully loaded into memory (as a wstring)
 	fill_chordpro_file_list(song_list);
 
 	// Print a list of found ChordPro files
-	stdout << "Found " << song_list.size() << " ChordPro files:" << endl;
-	for (int ii = 0; ii < song_list.size(); ii++) {
-		stdout << " - " << song_list[ii]->title() << endl;
+	wcout << L"Found " << song_list.size() << L" ChordPro files:" << endl;
+	
+	list<ChordProParser *>::iterator it;
+	for (it = song_list.begin(); it != song_list.end(); ++it) {
+		wcout << " - " << (*it)->title() << endl;
 	}
-	stdout << endl;
+	wcout << endl;
 
-	ChordProParser *act_song = song_list[0];
-	stdout << *act_song << endl;
+	ChordProParser *act_song = song_list.front();
+	wcout << act_song->m_Input << endl;
 
 	// Create the svg file of the song
 	createSVG(act_song);

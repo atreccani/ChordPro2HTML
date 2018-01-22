@@ -33,9 +33,9 @@ size_t HTMLWrite::paint(ChordProParser *chproFile)
 		case PARSED_ITEM_DIRECTIVE_COMMENT:
 		case PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC:
 		case PARSED_ITEM_DIRECTIVE_COMMENT_BOX:
-			putlyrics("(");
+			putlyrics(L"(");
 			putlyrics(it.value);
-			putlyrics(")");
+			putlyrics(L")");
 			break;
 
 		case PARSED_ITEM_TEXT:
@@ -74,7 +74,7 @@ void HTMLWrite::startline()
 	}
 }
 
-void HTMLWrite::putlyrics(string scan)
+void HTMLWrite::putlyrics(wstring scan)
 {
 	// Print Lyrics
 
@@ -83,7 +83,7 @@ void HTMLWrite::putlyrics(string scan)
 	}
 }
 
-void HTMLWrite::putchord(string name)
+void HTMLWrite::putchord(wstring name)
 {
 	if (xChords < xLyrics) {
 		// align chord coordinate to lyrics 

@@ -31,8 +31,8 @@ public:
 private:
 	void reinit(void);
 	void startline(void);
-	void putlyrics(string scan);
-	void putchord(string name);
+	void putlyrics(wstring scan);
+	void putchord(wstring name);
 
 private:
 	int xLyrics;

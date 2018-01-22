@@ -3,8 +3,15 @@
 ** ChordPro parser.
 **
 ****************************************************************************/
+#include <codecvt>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include "chordpro_parser.h"
+
+
+using namespace std;
 
 #define DIM(a) (sizeof(a) / sizeof(a[0]))
 
@@ -34,15 +41,33 @@ static const directive_define_t directive_list[] = {
 	{ PARSED_ITEM_DIRECTIVE_DEFINE			, "define"				, NULL }
 };
 
-string &ChordProParser::operator=(const string &other)
+bool ChordProParser::loadFile()
 {
-	return string::operator=(other);
+	// Read file in UTF-8
+	wifstream wif(m_FileName);
+	wif.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
+
+	// Open the file for reading
+	if (!wif.is_open()) {
+		wcout << L"Unable to open file" << endl;
+		return false;
+	}
+
+	wstringstream wss;
+	wss << wif.rdbuf();
+
+	m_Input = wss.str();
+
+	return true;
+
 }
 
 bool ChordProParser::parseTitle(void)
 {
-	string dir_value;
+	wstring dir_value;
 	parsed_item_t it;
+
+	reinit();
 
 	while ((it = get(dir_value)) != PARSED_ITEM_NONE) {
 		switch (it) {
@@ -63,7 +88,7 @@ bool ChordProParser::parseTitle(void)
 	return true;
 }
 
-string &ChordProParser::title()
+wstring &ChordProParser::title()
 {
 	return m_Title;
 }
@@ -91,7 +116,8 @@ void ChordProParser::removeMultipleSpaces(void)
 				(it->id == PARSED_ITEM_NEWLINE) || 
 				((it->id == PARSED_ITEM_TEXT) && (it->value.empty()))	/* nothing but whitespace */
 			) {
-				string Log = string("Removing Id: ") + ParserLabel(it->id) + string(", Val: ") + it->value;
+				wstring Label(ParserLabel(it->id));
+				wstring Log = L"Removing Id: " + Label + L", Val: " + it->value;
 
 				it = m_AllItems.erase(it);
 			} else {
@@ -118,12 +144,12 @@ list <ParsedSongItem> &ChordProParser::all()
 
 void ChordProParser::reinit(void)
 {
-	m_Pos = (char *)c_str();
+	m_Pos = m_Input.c_str();
 }
 
-parsed_item_t ChordProParser::get(string &arg)
+parsed_item_t ChordProParser::get(wstring &arg)
 {
-	if (m_Pos >= c_str() + size()) {
+	if (m_Pos >= m_Input.c_str() + m_Input.size()) {
 		return PARSED_ITEM_NONE;
 	}
 
@@ -159,7 +185,7 @@ parsed_item_t ChordProParser::get(string &arg)
 
 bool ChordProParser::isLineBegin(void)
 {
-	if (m_Pos == c_str()) {
+	if (m_Pos == m_Input.c_str()) {
 		// beginning of first  line
 		return true;
 	}
@@ -198,10 +224,10 @@ parsed_item_t ChordProParser::parseDirective(string &label)
 	return PARSED_ITEM_DIRECTIVE_NONE;
 }
 
-void ChordProParser::getComment(string &arg)
+void ChordProParser::getComment(wstring &arg)
 {
 	m_Pos++;
-	while (m_Pos < c_str() + size()) {
+	while (m_Pos < m_Input.c_str() + m_Input.size()) {
 		if (*m_Pos == '\n') {
 			// Comment stops at the end of line
 			m_Pos++;	// skip '\n'
@@ -212,10 +238,10 @@ void ChordProParser::getComment(string &arg)
 	}
 }
 
-void ChordProParser::getChord(string &arg)
+void ChordProParser::getChord(wstring &arg)
 {
 	m_Pos++;	// skip '['
-	while (m_Pos < c_str() + size()) {
+	while (m_Pos < m_Input.c_str() + m_Input.size()) {
 		if (*m_Pos == ']') {
 			// Chord stop when ] is found 
 			m_Pos++;	// skip ']'
@@ -226,13 +252,13 @@ void ChordProParser::getChord(string &arg)
 	}
 }
 
-parsed_item_t ChordProParser::getDirective(string &arg)
+parsed_item_t ChordProParser::getDirective(wstring &arg)
 {
 	string directive_name;
 	bool separator_found = false;
 
 	m_Pos++;	// skip '{'
-	while (m_Pos < c_str() + size()) {
+	while (m_Pos < m_Input.c_str() + m_Input.size()) {
 
 		if (*m_Pos == '}') {
 			// Directive end
@@ -258,12 +284,12 @@ parsed_item_t ChordProParser::getDirective(string &arg)
 	return PARSED_ITEM_NONE;
 }
 
-void ChordProParser::getText(string &arg)
+void ChordProParser::getText(wstring &arg)
 {
 	arg += *m_Pos;
 	m_Pos++;
 
-	while (m_Pos < c_str() + size()) {
+	while (m_Pos < m_Input.c_str() + m_Input.size()) {
 
 		if ( item_starting() != PARSED_ITEM_NONE)  {
 			// Something different from normal text is starting
@@ -274,28 +300,28 @@ void ChordProParser::getText(string &arg)
 	}
 }
 
-const char *ParserLabel(parsed_item_t it)
+const wchar_t *ParserLabel(parsed_item_t it)
 {
 	switch (it) {
-	case PARSED_ITEM_NONE:						return "None";
-	case PARSED_ITEM_NEWLINE:					return "Newline";
-	case PARSED_ITEM_COMMENT:					return "Comment";
-	case PARSED_ITEM_CHORD:						return "Chord";
-	case PARSED_ITEM_TEXT:						return "Text";
+	case PARSED_ITEM_NONE:						return L"None";
+	case PARSED_ITEM_NEWLINE:					return L"Newline";
+	case PARSED_ITEM_COMMENT:					return L"Comment";
+	case PARSED_ITEM_CHORD:						return L"Chord";
+	case PARSED_ITEM_TEXT:						return L"Text";
 
 	// Directives
-	case PARSED_ITEM_DIRECTIVE_NONE:			return "Directive - None";
-	case PARSED_ITEM_DIRECTIVE_NEW_SONG:		return "Directive - New song";
-	case PARSED_ITEM_DIRECTIVE_TITLE:			return "Directive - Title";
-	case PARSED_ITEM_DIRECTIVE_SUBTITLE:		return "Directive - Subtitle";
-	case PARSED_ITEM_DIRECTIVE_COMMENT:			return "Directive - Comment";
-	case PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC:	return "Directive - Comment italic";
-	case PARSED_ITEM_DIRECTIVE_COMMENT_BOX:		return "Directive - Comment box";
-	case PARSED_ITEM_DIRECTIVE_CHORUS_START:	return "Directive - Chorus start";
-	case PARSED_ITEM_DIRECTIVE_CHORUS_END:		return "Directive - Chorus end";
-	case PARSED_ITEM_DIRECTIVE_TAB_START:		return "Directive - Tab start";
-	case PARSED_ITEM_DIRECTIVE_TAB_END:			return "Directive - Tab end";
-	case PARSED_ITEM_DIRECTIVE_DEFINE:			return "Directive - Define";
+	case PARSED_ITEM_DIRECTIVE_NONE:			return L"Directive - None";
+	case PARSED_ITEM_DIRECTIVE_NEW_SONG:		return L"Directive - New song";
+	case PARSED_ITEM_DIRECTIVE_TITLE:			return L"Directive - Title";
+	case PARSED_ITEM_DIRECTIVE_SUBTITLE:		return L"Directive - Subtitle";
+	case PARSED_ITEM_DIRECTIVE_COMMENT:			return L"Directive - Comment";
+	case PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC:	return L"Directive - Comment italic";
+	case PARSED_ITEM_DIRECTIVE_COMMENT_BOX:		return L"Directive - Comment box";
+	case PARSED_ITEM_DIRECTIVE_CHORUS_START:	return L"Directive - Chorus start";
+	case PARSED_ITEM_DIRECTIVE_CHORUS_END:		return L"Directive - Chorus end";
+	case PARSED_ITEM_DIRECTIVE_TAB_START:		return L"Directive - Tab start";
+	case PARSED_ITEM_DIRECTIVE_TAB_END:			return L"Directive - Tab end";
+	case PARSED_ITEM_DIRECTIVE_DEFINE:			return L"Directive - Define";
 	}
-	return "?";
+	return L"?";
 }

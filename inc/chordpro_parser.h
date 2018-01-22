@@ -48,24 +48,27 @@ public:
 	//ParsedSongItem() {}
 	//ParsedSongItem(const ParsedSongItem &other);
 
-	//ParsedSongItem &operator=(const ParsedSongItem &other);
-
 public:
 	parsed_item_t	id;
-	string			value;
+	wstring			value;
 };
 
-class ChordProParser : public string
+class ChordProParser
 {
 public:
-	string &operator=(const string &other);
+	ChordProParser(wstring &file_name) {
+		m_FileName = file_name;
+	}
+
+	bool loadFile();
+
 	bool parseTitle(void);
-	string &title();
+	wstring &title();
 	void parseAll(void);
 	void removeMultipleSpaces(void);
 	list <ParsedSongItem> &all();
 	void reinit(void);
-	parsed_item_t get(string &arg);
+	parsed_item_t get(wstring &arg);
 
 
 
@@ -73,22 +76,23 @@ private:
 	bool isLineBegin(void);
 	parsed_item_t item_starting();
 	parsed_item_t parseDirective(string &label);
-	void getComment(string &arg);
-	void getChord(string &arg);
-	parsed_item_t getDirective(string &arg);
-	void getText(string &arg);
+	void getComment(wstring &arg);
+	void getChord(wstring &arg);
+	parsed_item_t getDirective(wstring &arg);
+	void getText(wstring &arg);
 
 public:
-	// QFileInfo		m_fileinfo;
+	wstring					m_Input;
 
 private:
-	char					*m_Pos;
-	string					m_Title;
-	list<string>			m_Subtitles;
+	wstring					m_FileName;
+	const wchar_t			*m_Pos;
+	wstring					m_Title;
+	list<wstring>			m_Subtitles;
 	list<ParsedSongItem>	m_AllItems;
 
 };
 
-extern const char *ParserLabel(parsed_item_t it);
+extern const wchar_t *ParserLabel(parsed_item_t it);
 
 #endif // CHORDPROPARSER_H
