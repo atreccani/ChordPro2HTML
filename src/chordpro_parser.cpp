@@ -24,21 +24,45 @@ typedef struct {
 static const directive_define_t directive_list[] = {
 
 	// Preamble directives
-	{ PARSED_ITEM_DIRECTIVE_NEW_SONG		, "new_song"			, "ns" },
+	{ PARSED_ITEM_DIRECTIVE_NEW_SONG		, "new_song"			, "ns"	},
 
 	// Metadata directives
-	{ PARSED_ITEM_DIRECTIVE_TITLE			, "title"				, "t" },
-	{ PARSED_ITEM_DIRECTIVE_SUBTITLE		, "subtitle"			, "st" },
+	{ PARSED_ITEM_DIRECTIVE_TITLE			, "title"				, "t"	},
+	{ PARSED_ITEM_DIRECTIVE_SUBTITLE		, "subtitle"			, "st"	},
+	{ PARSED_ITEM_DIRECTIVE_ARTIST			, "artist"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_COMPOSER		, "composer"			, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_LYRICIST		, "lyricist"			, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_ARRANGER		, "arranger"			, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_COPYRIGHT		, "copyright"			, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_ALBUM			, "album"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_YEAR			, "year"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_KEY				, "key"					, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_TIME			, "time"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_TEMPO			, "tempo"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_DURATION		, "duration"			, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_CAPO			, "capo"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_META			, "meta"				, NULL	},
 
 	// Formatting directives
-	{ PARSED_ITEM_DIRECTIVE_COMMENT			, "comment"				, "c" },
-	{ PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC	, "comment_italic"		, "ci" },
-	{ PARSED_ITEM_DIRECTIVE_COMMENT_BOX		, "comment_box"			, "cb" },
-	{ PARSED_ITEM_DIRECTIVE_CHORUS_START	, "start_of_chorus"		, "soc" },
-	{ PARSED_ITEM_DIRECTIVE_CHORUS_END		, "end_of_chorus"		, "eoc" },
-	{ PARSED_ITEM_DIRECTIVE_TAB_START		, "start_of_tab"		, "sot" },
-	{ PARSED_ITEM_DIRECTIVE_TAB_END			, "end_of_tab"			, "eot" },
-	{ PARSED_ITEM_DIRECTIVE_DEFINE			, "define"				, NULL }
+	{ PARSED_ITEM_DIRECTIVE_COMMENT			, "comment"				, "c"	},
+	{ PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC	, "comment_italic"		, "ci"	},
+	{ PARSED_ITEM_DIRECTIVE_COMMENT_BOX		, "comment_box"			, "cb"	},
+	{ PARSED_ITEM_DIRECTIVE_CHORUS			, "chorus"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_IMAGE			, "image"				, NULL	},
+
+	// Environment
+	{ PARSED_ITEM_DIRECTIVE_CHORUS_START	, "start_of_chorus"		, "soc"	},
+	{ PARSED_ITEM_DIRECTIVE_CHORUS_END		, "end_of_chorus"		, "eoc"	},
+	{ PARSED_ITEM_DIRECTIVE_VERSE_START		, "start_of_verse"		, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_VERSE_END		, "end_of_verse"		, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_TAB_START		, "start_of_tab"		, "sot"	},
+	{ PARSED_ITEM_DIRECTIVE_TAB_END			, "end_of_tab"			, "eot"	},
+	{ PARSED_ITEM_DIRECTIVE_GRID_START		, "start_of_grid"		, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_GRID_END		, "end_of_grid"			, NULL	},
+
+	// Chord diagrams directives
+	{ PARSED_ITEM_DIRECTIVE_DEFINE			, "define"				, NULL	},
+	{ PARSED_ITEM_DIRECTIVE_CHORD			, "chord"				, NULL	}
 };
 
 bool ChordProParser::loadFile()
