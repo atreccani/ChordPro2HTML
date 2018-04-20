@@ -73,17 +73,23 @@ void fill_chordpro_file_list(list <ChordProParser *> &list_ref)
 }
 
 // Create the svg file for the given song
-void createSVG(ChordProParser *act_song)
+void createHTML(ChordProParser *act_song)
 {
 	// Set the destination .svg file name changing extension to the source .pro file name
 	const string path = "../default_out/test.html";
 
+	// List of parsed elements
+	ChordProData chord_pro_data;
+
 	// Parse all elements of the song
-	act_song->parseAll();
-	act_song->removeMultipleSpaces();
+	act_song->parseAll(chord_pro_data);
+
+	act_song->removeMultipleSpaces(chord_pro_data);
 
 
 	HTMLWrite writer;
+
+	writer.paint(chord_pro_data);
 
 
 }
@@ -117,7 +123,7 @@ int main(int argc, char *argv[])
 	wcout << act_song->m_Input << endl;
 
 	// Create the svg file of the song
-	createSVG(act_song);
+	createHTML(act_song);
 
 	// Windows specific pause
 	system("pause");

@@ -19,6 +19,9 @@
     <ClInclude Include="..\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\inc\chordpro_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\inc\chordpro_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,6 +35,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\chordpro_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\chordpro_parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

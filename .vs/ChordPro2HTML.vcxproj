@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\version.h" />
+    <ClInclude Include="..\inc\chordpro_data.h" />
     <ClInclude Include="..\inc\chordpro_parser.h" />
     <ClInclude Include="..\inc\html_writer.h" />
   </ItemGroup>
@@ -83,6 +84,7 @@
     <ResourceCompile Include="ChordPro2HTML.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\chordpro_data.cpp" />
     <ClCompile Include="..\src\chordpro_parser.cpp" />
     <ClCompile Include="..\src\html_writer.cpp" />
     <ClCompile Include="..\src\main.cpp" />

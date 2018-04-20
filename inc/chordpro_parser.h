@@ -4,6 +4,7 @@
 **
 ****************************************************************************/
 
+//Include only once
 #ifndef CHORDPROPARSER_H
 #define CHORDPROPARSER_H
 
@@ -16,72 +17,43 @@
 #include <list>
 #include <string>
 
+/* Application Local Include
+*/
+#include "chordpro_data.h"
+
 using namespace std;
 
-typedef enum {
-	PARSED_ITEM_MIN = 0,
-	PARSED_ITEM_NONE			= PARSED_ITEM_MIN,
-	PARSED_ITEM_NEWLINE,
-	PARSED_ITEM_COMMENT,
-	PARSED_ITEM_CHORD,
-	PARSED_ITEM_TEXT,
+//////////////////////////////////////////////////////////////////////////////
+//                 C O N S T A N T S   D E F I N I T I O N S                //
+//////////////////////////////////////////////////////////////////////////////
 
-	// Directives
-	PARSED_ITEM_DIRECTIVE_NONE,
+// No public constants
 
-	// Preamble directives
-	PARSED_ITEM_DIRECTIVE_NEW_SONG,
 
-	// Metadata directives
-	PARSED_ITEM_DIRECTIVE_TITLE,
-	PARSED_ITEM_DIRECTIVE_SUBTITLE,
-	PARSED_ITEM_DIRECTIVE_ARTIST,
-	PARSED_ITEM_DIRECTIVE_COMPOSER,
-	PARSED_ITEM_DIRECTIVE_LYRICIST,
-	PARSED_ITEM_DIRECTIVE_ARRANGER,
-	PARSED_ITEM_DIRECTIVE_COPYRIGHT,
-	PARSED_ITEM_DIRECTIVE_ALBUM,
-	PARSED_ITEM_DIRECTIVE_YEAR,
-	PARSED_ITEM_DIRECTIVE_KEY,
-	PARSED_ITEM_DIRECTIVE_TIME,
-	PARSED_ITEM_DIRECTIVE_TEMPO,
-	PARSED_ITEM_DIRECTIVE_DURATION,
-	PARSED_ITEM_DIRECTIVE_CAPO,
-	PARSED_ITEM_DIRECTIVE_META,
+//////////////////////////////////////////////////////////////////////////////
+//                  M A C R O S    D E F I N I T I O N S                    //
+//////////////////////////////////////////////////////////////////////////////
 
-	// Formatting directives
-	PARSED_ITEM_DIRECTIVE_COMMENT,
-	PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC,
-	PARSED_ITEM_DIRECTIVE_COMMENT_BOX,
-	PARSED_ITEM_DIRECTIVE_CHORUS,
-	PARSED_ITEM_DIRECTIVE_IMAGE,
+// No public macros
 
-	// Environment
-	PARSED_ITEM_DIRECTIVE_CHORUS_START,
-	PARSED_ITEM_DIRECTIVE_CHORUS_END,
-	PARSED_ITEM_DIRECTIVE_VERSE_START,
-	PARSED_ITEM_DIRECTIVE_VERSE_END,
-	PARSED_ITEM_DIRECTIVE_TAB_START,
-	PARSED_ITEM_DIRECTIVE_TAB_END,
-	PARSED_ITEM_DIRECTIVE_GRID_START,
-	PARSED_ITEM_DIRECTIVE_GRID_END,
 
-	// Chord diagrams directives
-	PARSED_ITEM_DIRECTIVE_DEFINE,
-	PARSED_ITEM_DIRECTIVE_CHORD,
+//////////////////////////////////////////////////////////////////////////////
+//                    T Y P E S    D E F I N I T I O N S                    //
+//////////////////////////////////////////////////////////////////////////////
 
-	PARSED_ITEM_MAX
-} parsed_item_t;
+// No public types
 
-class ParsedSongItem {
-public:
-	//ParsedSongItem() {}
-	//ParsedSongItem(const ParsedSongItem &other);
 
-public:
-	parsed_item_t	id;
-	wstring			value;
-};
+//////////////////////////////////////////////////////////////////////////////
+//                   G L O B A L   V A R I A B L E S                        //
+//////////////////////////////////////////////////////////////////////////////
+
+// No global variables
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                    C L A S S    D E C L A R A T I O N                    //
+//////////////////////////////////////////////////////////////////////////////
 
 class ChordProParser
 {
@@ -94,9 +66,8 @@ public:
 
 	bool parseTitle(void);
 	wstring &title();
-	void parseAll(void);
-	void removeMultipleSpaces(void);
-	list <ParsedSongItem> &all();
+	void parseAll(ChordProData &dst);
+	void removeMultipleSpaces(ChordProData &lst);
 	void reinit(void);
 	parsed_item_t get(wstring &arg);
 
@@ -105,7 +76,6 @@ public:
 private:
 	bool isLineBegin(void);
 	parsed_item_t item_starting();
-	parsed_item_t parseDirective(string &label);
 	void getComment(wstring &arg);
 	void getChord(wstring &arg);
 	parsed_item_t getDirective(wstring &arg);
@@ -119,7 +89,6 @@ private:
 	const wchar_t			*m_Pos;
 	wstring					m_Title;
 	list<wstring>			m_Subtitles;
-	list<ParsedSongItem>	m_AllItems;
 
 };
 
