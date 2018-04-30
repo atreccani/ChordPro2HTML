@@ -1,66 +1,61 @@
+﻿//////////////////////////////////////////////////////////////////////////////
+//                         I N C L U D E S                                  //
+//////////////////////////////////////////////////////////////////////////////
+
+/* System Library Include
+*/
 #include <fstream>
-#include <iostream>
-#include <vector>
 
-#include <windows.h>
-#include <fcntl.h>  
-#include <io.h>  
-#include <stdio.h>
-#include <strsafe.h>
-
+/* Application Local Include
+*/
 #include "../version.h"
 #include "chordpro_parser.h"
+#include "console_utf8.h"
+#include "file_system.h"
 #include "html_writer.h"
-
-
 
 using namespace std;
 
-typedef struct {
-	wstring		name;
-	uint64_t	size;
-} FileInfo;
+//////////////////////////////////////////////////////////////////////////////
+//                 C O N S T A N T S   D E F I N I T I O N S                //
+//////////////////////////////////////////////////////////////////////////////
 
-void getDirFiles(wstring folder, vector<FileInfo> &listing)
-{
-	FileInfo file;
-	wstring search_path = folder + L"/*.*";
-	WIN32_FIND_DATA fd; 
-	LARGE_INTEGER filesize;
+// No local constants
 
-	HANDLE hFind = ::FindFirstFile(search_path.c_str(), &fd); 
-	if(hFind != INVALID_HANDLE_VALUE) { 
-		do {
-			// read all (real) files in current folder
-			// , delete '!' read other 2 default folder . and ..
-			if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-				file.name = fd.cFileName;
 
-				filesize.LowPart = fd.nFileSizeLow;
-				filesize.HighPart = fd.nFileSizeHigh;
-				file.size = filesize.QuadPart;
+//////////////////////////////////////////////////////////////////////////////
+//                  M A C R O S    D E F I N I T I O N S                    //
+//////////////////////////////////////////////////////////////////////////////
 
-				listing.push_back(file);
-			}
-		}while(::FindNextFile(hFind, &fd)); 
-		::FindClose(hFind); 
-	}
-}
+// No local macros
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                    T Y P E S    D E F I N I T I O N S                    //
+//////////////////////////////////////////////////////////////////////////////
+
+// No local type definitions
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                     P U B L I C   F U N C T I O N S                      //
+//////////////////////////////////////////////////////////////////////////////
+
 
 void fill_chordpro_file_list(list <ChordProParser *> &list_ref)
 {
-	wstring pathIn = L"../default_in";
+	string pathIn = "../default_in";
 	vector<FileInfo> filesInfo;
 
 	// List of all files in input directory (not necessarily all are chordpro files)
 	getDirFiles(pathIn, filesInfo);
 
-	std::vector<FileInfo>::iterator it;
+	vector<FileInfo>::iterator it;
 	for (it = filesInfo.begin(); it != filesInfo.end(); ++it) {
 
 		// A valid ChordPro file it should be less than 100k (it's a plain text file!)
 		if (it->size < (100 * 1024)) {
-			ChordProParser *parser = new ChordProParser(pathIn + L"/" + it->name);
+			ChordProParser *parser = new ChordProParser(pathIn + "/" + it->name);
 
 			if (parser->loadFile()) {
 				// To be a valid ChordPro file it should contain title directive in first 1k
@@ -87,40 +82,57 @@ void createHTML(ChordProParser *act_song)
 	act_song->removeMultipleSpaces(chord_pro_data);
 
 
-	HTMLWrite writer;
+	HTMLWriter writer(path);
 
 	writer.paint(chord_pro_data);
 
 
 }
 
+
+/*
+	Important note: all strings are represented internally in utf-8 coding.
+	See http://www.nubaria.com/en/blog/?p=289.
+	Strings can be seen correctly on Visual Studio watch appending ',s8' to	the variable name.
+*/
+
 int main(int argc, char *argv[])
 {
 	list <ChordProParser *> song_list;
 
-	// set output console in unicode mode (UTF16)
-	_setmode(_fileno(stdout), _O_WTEXT);
+	UTF8::init();
 
+	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+	// setvbuf(stdout, nullptr, _IOFBF, 1000);
+
+	string test1 = u8"UTF-8 console test";
+	string test2 = u8"This is a fi: ф";
+	string test3 = u8"These are notes: ♩(quarter) ♪(eighth) ♫(beamed eighth) ♬(beamed sixteenth)";
+	UTF8::cout << test1 << endl;
+	UTF8::cout << test2 << endl;
+	UTF8::cout << test3 << endl;
+	UTF8::cout << endl;
 
 	// Set the logging file
 	// check which a path to file you use 
-	std::wofstream logFile(
-		"../default_out/log.txt", std::ios_base::out | std::ios_base::app);
+	wofstream logFile(
+		"../default_out/log.txt", ios_base::out | ios_base::app);
 
-	// Fill a list of valid ChordPro files, each file will also be fully loaded into memory (as a wstring)
+	// Fill a list of valid ChordPro files, each file will also be fully loaded into memory (as an utf8 encoded string)
 	fill_chordpro_file_list(song_list);
 
 	// Print a list of found ChordPro files
-	wcout << L"Found " << song_list.size() << L" ChordPro files:" << endl;
+	string size_str = to_string(song_list.size());
+	UTF8::cout << "Found " << size_str << " ChordPro files:" << endl;
 	
 	list<ChordProParser *>::iterator it;
 	for (it = song_list.begin(); it != song_list.end(); ++it) {
-		wcout << " - " << (*it)->title() << endl;
+		UTF8::cout << " - " << (*it)->title() << endl;
 	}
-	wcout << endl;
+	UTF8::cout << endl;
 
 	ChordProParser *act_song = song_list.front();
-	wcout << act_song->m_Input << endl;
+	UTF8::cout << act_song->m_Input << endl;
 
 	// Create the svg file of the song
 	createHTML(act_song);

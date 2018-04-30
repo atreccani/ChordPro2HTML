@@ -55,19 +55,22 @@ using namespace std;
 //                    C L A S S    D E C L A R A T I O N                    //
 //////////////////////////////////////////////////////////////////////////////
 
-class HTMLWrite
+class HTMLWriter
 {
 public:
-	HTMLWrite();
+	HTMLWriter(const string &file_name);
 	size_t paint(ChordProData &src);
 
 private:
 	void reinit(void);
 	void startline(void);
-	void putlyrics(wstring scan);
-	void putchord(wstring name);
+	void putlyrics(string scan);
+	void putchord(string name);
+
+	void writeUtf8(string output);
 
 private:
+	string		m_FileName;
 	int xLyrics;
 	int xChords;
 	int yLyrics;

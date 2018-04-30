@@ -1,12 +1,12 @@
 /****************************************************************************
 **
-** ChordPro parser.
+** HTML writer.
 **
 ****************************************************************************/
 
 //Include only once
-#ifndef CHORDPROPARSER_H
-#define CHORDPROPARSER_H
+#ifndef CONSOLE_UTF8_H
+#define CONSOLE_UTF8_H
 
 //////////////////////////////////////////////////////////////////////////////
 //                         I N C L U D E S                                  //
@@ -14,12 +14,14 @@
 
 /* System Library Include
 */
+#include <codecvt>
 #include <list>
+#include <sstream>
 #include <string>
 
 /* Application Local Include
 */
-#include "chordpro_data.h"
+// No application library includes
 
 using namespace std;
 
@@ -55,41 +57,42 @@ using namespace std;
 //                    C L A S S    D E C L A R A T I O N                    //
 //////////////////////////////////////////////////////////////////////////////
 
-class ChordProParser
+/* It seems that you have to first convert from UTF-8 to UTF-16, and then use 
+	wprintf or wcout to print the UTF-16-encoded text. 
+	This isn’t optimal, but at least it seems to work.
+*/
+// override cout
+
+class u8ostream
 {
 public:
-	ChordProParser(string &file_name) {
-		m_FileName = file_name;
-	}
-
-	bool loadFile();
-
-	bool parseTitle(void);
-	string &title();
-	void parseAll(ChordProData &dst);
-	void removeMultipleSpaces(ChordProData &lst);
-	void reinit(void);
-	song_element_t get(string &arg);
-
-
-
-private:
-	bool isLineBegin(void);
-	song_element_t item_starting();
-	void getComment(string &arg);
-	void getChord(string &arg);
-	song_element_t getDirective(string &arg);
-	void getText(string &arg);
-
-public:
-	string					m_Input;
-
-private:
-	string					m_FileName;
-	const char				*m_Pos;
-	string					m_Title;
-	list<string>			m_Subtitles;
-
+	friend u8ostream& operator<< (u8ostream &u8out, const string &utf8_str);
 };
 
-#endif // CHORDPROPARSER_H
+u8ostream& operator<< (u8ostream &u8out, const string &utf8_str);
+
+// insertion operator overload  for I/O manipulator like endl
+u8ostream& operator<<(u8ostream& u8out, std::ostream& (*pf)(std::ostream&));
+
+
+class u8istream
+{
+public:
+	friend u8istream& operator>> (u8istream &u8in, string &utf8_str);
+};
+
+u8istream& operator>> (u8istream &u8in, string &utf8_str);
+
+
+class UTF8
+{
+public:
+	static void init();
+public:
+	static u8ostream cout;
+	static u8istream cin;
+};
+
+
+
+#endif // CONSOLE_UTF8_H

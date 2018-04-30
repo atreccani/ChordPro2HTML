@@ -4,12 +4,15 @@
 
 /* System Library Include
 */
-#include "chordpro_parser.h"
-#include "html_writer.h"
+#include <codecvt>
+#include <fstream>
+#include <iostream>
+#include <locale>
 
 /* Application Local Include
 */
-// No application library includes
+#include "chordpro_parser.h"
+#include "html_writer.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //                 C O N S T A N T S   D E F I N I T I O N S                //
@@ -48,15 +51,29 @@
 	<h2 class="Artist">(Domenico Modugno)</h2>
 */
 
-HTMLWrite::HTMLWrite()
+HTMLWriter::HTMLWriter(const string &file_name)
 {
+	m_FileName = file_name;
 }
 
-size_t HTMLWrite::paint(ChordProData &src)
+size_t HTMLWriter::paint(ChordProData &src)
 {
-	parsed_item_t it;
+	song_element_t it;
 
 	string value;
+
+	// both of these assume that the character can be represented with
+	// a single char in the execution encoding
+	char32_t b = U'\U00000444';
+	char32_t a = 'ф'; // this line additionally assumes that the source character encoding supports 
+
+	char utf8String[] = u8"hello"; //UTF-8 encoding.
+
+	std::cout << L"Hello, ф or \u0444!\n";
+
+
+
+	writeUtf8("Ciao2");
 
 	reinit();
 
@@ -70,9 +87,9 @@ size_t HTMLWrite::paint(ChordProData &src)
 		case PARSED_ITEM_DIRECTIVE_COMMENT:
 		case PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC:
 		case PARSED_ITEM_DIRECTIVE_COMMENT_BOX:
-			putlyrics(L"(");
+			putlyrics("(");
 			putlyrics(it.value);
-			putlyrics(L")");
+			putlyrics(")");
 			break;
 
 		case PARSED_ITEM_TEXT:
@@ -89,7 +106,7 @@ size_t HTMLWrite::paint(ChordProData &src)
 	return 0;
 }
 
-void HTMLWrite::reinit()
+void HTMLWriter::reinit()
 {
 	xLyrics = 0;
 	xChords = 0;
@@ -99,7 +116,7 @@ void HTMLWrite::reinit()
 	yMax = 0;
 }
 
-void HTMLWrite::startline()
+void HTMLWriter::startline()
 {
 	xLyrics = 0;
 	xChords = 0;
@@ -111,7 +128,7 @@ void HTMLWrite::startline()
 	}
 }
 
-void HTMLWrite::putlyrics(wstring scan)
+void HTMLWriter::putlyrics(string scan)
 {
 	// Print Lyrics
 
@@ -120,7 +137,7 @@ void HTMLWrite::putlyrics(wstring scan)
 	}
 }
 
-void HTMLWrite::putchord(wstring name)
+void HTMLWriter::putchord(string name)
 {
 	if (xChords < xLyrics) {
 		// align chord coordinate to lyrics 
@@ -130,5 +147,19 @@ void HTMLWrite::putchord(wstring name)
 	if (xChords > xMax) {
 		xMax = xChords;
 	}
+}
+
+// To write std::u32string as utf8 text files:
+
+// Write file in UTF-8
+void HTMLWriter::writeUtf8(string str)
+{
+	// std::locale loc (std::locale(), new std::codecvt_utf8<wchar_t>);
+	// std::basic_ofstream<wchar_t> ofs (m_FileName);
+	// ofs.imbue(loc);
+
+	// string is assumed to be UTF-8 encoded already
+	std::ofstream ofs (m_FileName);
+	ofs << str;
 }
 

@@ -33,6 +33,9 @@ using namespace std;
 //                    T Y P E S    D E F I N I T I O N S                    //
 //////////////////////////////////////////////////////////////////////////////
 
+// No local type definitions
+
+
 //////////////////////////////////////////////////////////////////////////////
 //                   L O C A L S    D E F I N I T I O N S                   //
 //////////////////////////////////////////////////////////////////////////////
@@ -43,20 +46,19 @@ using namespace std;
 
 bool ChordProParser::loadFile()
 {
-	// Read file in UTF-8
-	wifstream wif(m_FileName);
-	wif.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
+	// Read file assumed to be UTF-8 encoded
+	ifstream ifs(m_FileName);
 
 	// Open the file for reading
-	if (!wif.is_open()) {
-		wcout << L"Unable to open file" << endl;
+	if (!ifs.is_open()) {
+		wcout << "Unable to open file" << endl;
 		return false;
 	}
 
-	wstringstream wss;
-	wss << wif.rdbuf();
+	stringstream ss;
+	ss << ifs.rdbuf();
 
-	m_Input = wss.str();
+	m_Input = ss.str();
 
 	return true;
 
@@ -64,8 +66,8 @@ bool ChordProParser::loadFile()
 
 bool ChordProParser::parseTitle(void)
 {
-	wstring dir_value;
-	parsed_item_t it;
+	string dir_value;
+	song_element_t it;
 
 	reinit();
 
@@ -88,7 +90,7 @@ bool ChordProParser::parseTitle(void)
 	return true;
 }
 
-wstring &ChordProParser::title()
+string &ChordProParser::title()
 {
 	return m_Title;
 }
@@ -116,8 +118,8 @@ void ChordProParser::removeMultipleSpaces(ChordProData &lst)
 				(it->id == PARSED_ITEM_NEWLINE) || 
 				((it->id == PARSED_ITEM_TEXT) && (it->value.empty()))	/* nothing but whitespace */
 			) {
-				wstring Label(ParserLabel(it->id));
-				wstring Log = L"Removing Id: " + Label + L", Val: " + it->value;
+				string Label(ChordProData::getDescription(it->id));
+				string Log = "Removing Id: " + Label + ", Val: " + it->value;
 
 				it = lst.elements.erase(it);
 			} else {
@@ -142,7 +144,7 @@ void ChordProParser::reinit(void)
 	m_Pos = m_Input.c_str();
 }
 
-parsed_item_t ChordProParser::get(wstring &arg)
+song_element_t ChordProParser::get(string &arg)
 {
 	if (m_Pos >= m_Input.c_str() + m_Input.size()) {
 		return PARSED_ITEM_NONE;
@@ -187,7 +189,7 @@ bool ChordProParser::isLineBegin(void)
 	return (*(m_Pos - 1) == '\n');
 }
 
-parsed_item_t ChordProParser::item_starting()
+song_element_t ChordProParser::item_starting()
 {
 	if (*m_Pos == '\n')						return PARSED_ITEM_NEWLINE;
 	if (isLineBegin() && (*m_Pos == '#'))	return PARSED_ITEM_COMMENT;
@@ -197,7 +199,7 @@ parsed_item_t ChordProParser::item_starting()
 	return PARSED_ITEM_NONE;
 }
 
-void ChordProParser::getComment(wstring &arg)
+void ChordProParser::getComment(string &arg)
 {
 	m_Pos++;
 	while (m_Pos < m_Input.c_str() + m_Input.size()) {
@@ -211,7 +213,7 @@ void ChordProParser::getComment(wstring &arg)
 	}
 }
 
-void ChordProParser::getChord(wstring &arg)
+void ChordProParser::getChord(string &arg)
 {
 	m_Pos++;	// skip '['
 	while (m_Pos < m_Input.c_str() + m_Input.size()) {
@@ -225,7 +227,7 @@ void ChordProParser::getChord(wstring &arg)
 	}
 }
 
-parsed_item_t ChordProParser::getDirective(wstring &arg)
+song_element_t ChordProParser::getDirective(string &arg)
 {
 	string directive_name;
 	bool separator_found = false;
@@ -236,7 +238,7 @@ parsed_item_t ChordProParser::getDirective(wstring &arg)
 		if (*m_Pos == '}') {
 			// Directive end
 			m_Pos++;		// skip '}'
-			return getEnDirective(directive_name);
+			return ChordProData::getEnDirective(directive_name);
 		}
 		if (separator_found) {
 			// fill argument
@@ -257,7 +259,7 @@ parsed_item_t ChordProParser::getDirective(wstring &arg)
 	return PARSED_ITEM_NONE;
 }
 
-void ChordProParser::getText(wstring &arg)
+void ChordProParser::getText(string &arg)
 {
 	arg += *m_Pos;
 	m_Pos++;
@@ -273,28 +275,3 @@ void ChordProParser::getText(wstring &arg)
 	}
 }
 
-const wchar_t *ParserLabel(parsed_item_t it)
-{
-	switch (it) {
-	case PARSED_ITEM_NONE:						return L"None";
-	case PARSED_ITEM_NEWLINE:					return L"Newline";
-	case PARSED_ITEM_COMMENT:					return L"Comment";
-	case PARSED_ITEM_CHORD:						return L"Chord";
-	case PARSED_ITEM_TEXT:						return L"Text";
-
-	// Directives
-	case PARSED_ITEM_DIRECTIVE_NONE:			return L"Directive - None";
-	case PARSED_ITEM_DIRECTIVE_NEW_SONG:		return L"Directive - New song";
-	case PARSED_ITEM_DIRECTIVE_TITLE:			return L"Directive - Title";
-	case PARSED_ITEM_DIRECTIVE_SUBTITLE:		return L"Directive - Subtitle";
-	case PARSED_ITEM_DIRECTIVE_COMMENT:			return L"Directive - Comment";
-	case PARSED_ITEM_DIRECTIVE_COMMENT_ITALIC:	return L"Directive - Comment italic";
-	case PARSED_ITEM_DIRECTIVE_COMMENT_BOX:		return L"Directive - Comment box";
-	case PARSED_ITEM_DIRECTIVE_CHORUS_START:	return L"Directive - Chorus start";
-	case PARSED_ITEM_DIRECTIVE_CHORUS_END:		return L"Directive - Chorus end";
-	case PARSED_ITEM_DIRECTIVE_TAB_START:		return L"Directive - Tab start";
-	case PARSED_ITEM_DIRECTIVE_TAB_END:			return L"Directive - Tab end";
-	case PARSED_ITEM_DIRECTIVE_DEFINE:			return L"Directive - Define";
-	}
-	return L"?";
-}
