@@ -58,7 +58,7 @@ using namespace std;
 class ChordProParser
 {
 public:
-	ChordProParser(string &file_name) {
+	ChordProParser(const string &file_name) {
 		m_FileName = file_name;
 	}
 

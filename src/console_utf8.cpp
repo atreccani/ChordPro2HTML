@@ -7,9 +7,12 @@
 #include <codecvt>
 #include <fcntl.h>  
 #include <fstream>
-#include <io.h>
 #include <iostream>
 #include <locale>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <io.h>
+#endif
 
 /* Application Local Include
 */
@@ -46,7 +49,9 @@ u8istream UTF8::cin;
 
 void UTF8::init()
 {
+#if defined(_WIN32) || defined(_WIN64)
 	_setmode(_fileno(stdout), _O_U16TEXT);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

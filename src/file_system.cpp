@@ -10,11 +10,17 @@
 #include <locale>
 #include <sstream>
 
-#include <windows.h>
 #include <fcntl.h>  
-#include <io.h>  
 #include <stdio.h>
-#include <strsafe.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#endif
+
+#if defined(__linux__)
+#include <dirent.h>
+#include <sys/stat.h>
+#endif
 
 /* Application Local Include
 */
@@ -57,12 +63,14 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////
 //                     P U B L I C   F U N C T I O N S                      //
 //////////////////////////////////////////////////////////////////////////////
-void getDirFiles(string folder, vector<FileInfo> &listing)
+#if defined(_WIN32) || defined(_WIN64)
+const string getDirFiles(string folder, vector<FileInfo> &listing)
 {
 	FileInfo file;
 	string search_path = folder + "/*.*";
 	WIN32_FIND_DATA fd; 
 	LARGE_INTEGER filesize;
+	ostringstream fail;
 
 
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -72,23 +80,58 @@ void getDirFiles(string folder, vector<FileInfo> &listing)
 
 	HANDLE hFind = ::FindFirstFile(str16.c_str(), &fd); 
 
-	if(hFind != INVALID_HANDLE_VALUE) { 
-		do {
-			// read all (real) files in current folder
-			// , delete '!' read other 2 default folder . and ..
-			if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-
-				// converting from UTF-16 to UTF-8
-				file.name = converter.to_bytes(fd.cFileName);
-
-				filesize.LowPart = fd.nFileSizeLow;
-				filesize.HighPart = fd.nFileSizeHigh;
-				file.size = filesize.QuadPart;
-
-				listing.push_back(file);
-			}
-		}while(::FindNextFile(hFind, &fd)); 
-		::FindClose(hFind); 
+	if(hFind == INVALID_HANDLE_VALUE) {
+		fail << "Error(" << errno << ") opening " << folder << endl;
+		return fail.str();
 	}
-}
 
+	do {
+		// read all (real) files in current folder
+		// , delete '!' read other 2 default folder . and ..
+		if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
+
+			// converting from UTF-16 to UTF-8
+			file.name = converter.to_bytes(fd.cFileName);
+
+			filesize.LowPart = fd.nFileSizeLow;
+			filesize.HighPart = fd.nFileSizeHigh;
+			file.size = filesize.QuadPart;
+
+			listing.push_back(file);
+		}
+	}while(::FindNextFile(hFind, &fd)); 
+	::FindClose(hFind); 
+	return fail.str();
+}
+#endif
+
+#if defined(__linux__)
+const string getDirFiles(string folder, vector<FileInfo> &listing)
+{
+	FileInfo file;
+	DIR *dp;
+	struct dirent *dirp;
+	ostringstream fail;
+	struct stat buf;
+	int exists;
+
+	
+	if((dp  = opendir(folder.c_str())) == NULL) {
+		fail << "Error(" << errno << ") opening " << folder << endl;
+		return fail.str();
+	}
+
+	while ((dirp = readdir(dp)) != NULL) {
+		
+		exists = stat(dirp->d_name, &buf);
+		
+		if (exists >= 0) {
+			file.name = string(dirp->d_name);
+			file.size = buf.st_size;
+			listing.push_back(file);
+		}
+	}
+	closedir(dp);
+	return fail.str();
+}
+#endif

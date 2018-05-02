@@ -62,17 +62,6 @@ size_t HTMLWriter::paint(ChordProData &src)
 
 	string value;
 
-	// both of these assume that the character can be represented with
-	// a single char in the execution encoding
-	char32_t b = U'\U00000444';
-	char32_t a = 'ф'; // this line additionally assumes that the source character encoding supports 
-
-	char utf8String[] = u8"hello"; //UTF-8 encoding.
-
-	std::cout << L"Hello, ф or \u0444!\n";
-
-
-
 	writeUtf8("Ciao2");
 
 	reinit();
