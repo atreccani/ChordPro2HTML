@@ -10,7 +10,7 @@ GET_FILENAME_COMPONENT( CONFIGURATION_PROJECT ${CMAKE_BINARY_DIR} NAME )
 ####################################################################
 IF( CONFIGURATION_PROJECT STREQUAL "PClinux.release" )
     MESSAGE( "=== PClinux.release ===" )
-    ADD_DEFINITIONS( Di586)
+    ADD_DEFINITIONS( -Di586)
 
     # Variabili da Settare
     SET( ARCHITETTURA                    i386 )
@@ -58,23 +58,32 @@ ENDIF ()
 SET(CMAKE_CXX_FLAGS "${CMAKE_FLAGS} -std=c++11")
 SET(CMAKE_C_FLAGS   "${CMAKE_FLAGS}   -std=c11")
 INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}/../inc
+    ${PROJECT_SOURCE_DIR}/../../inc
 )
 
 MESSAGE(  ${BASE_DEVELOP}/${LINUX_VERSION_DIR}/include )
 
 SET( chordpro2html_SRCS
-	../src/chordpro_data.cpp
-	../src/chordpro_parser.cpp
-	../src/console_utf8.cpp
-	../src/file_system.cpp
-	../src/html_writer.cpp
-	../src/main.cpp
+	../../src/chordpro_data.cpp
+	../../src/chordpro_parser.cpp
+	../../src/console_utf8.cpp
+	../../src/file_system.cpp
+	../../src/html_writer.cpp
+	../../src/main.cpp
+)
+
+SET( chordpro2html_INCS
+	../../inc/chordpro_data.h
+	../../inc/chordpro_parser.h
+	../../inc/console_utf8.h
+	../../inc/file_system.h
+	../../inc/html_writer.h
+	../../version.h
 )
 
 SET( LINK_LIBRARIES pthread rt)
 
-ADD_EXECUTABLE( chordpro2html ${chordpro2html_SRCS} )
+ADD_EXECUTABLE( chordpro2html ${chordpro2html_SRCS} ${chordpro2html_INCS})
 TARGET_LINK_LIBRARIES( chordpro2html ${LINK_LIBRARIES} )
 INSTALL( TARGETS ${MODULE_NAME} DESTINATION home/treccani/chordpro2html )
 

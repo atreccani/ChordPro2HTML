@@ -47,7 +47,7 @@
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
@@ -63,7 +63,7 @@
       <PreprocessorDefinitions>UNICODE;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
@@ -75,23 +75,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\version.h" />
-    <ClInclude Include="..\inc\chordpro_data.h" />
-    <ClInclude Include="..\inc\chordpro_parser.h" />
-    <ClInclude Include="..\inc\console_utf8.h" />
-    <ClInclude Include="..\inc\file_system.h" />
-    <ClInclude Include="..\inc\html_writer.h" />
+    <ClInclude Include="..\..\..\inc\chordpro_data.h" />
+    <ClInclude Include="..\..\..\inc\chordpro_parser.h" />
+    <ClInclude Include="..\..\..\inc\console_utf8.h" />
+    <ClInclude Include="..\..\..\inc\file_system.h" />
+    <ClInclude Include="..\..\..\inc\html_writer.h" />
+    <ClInclude Include="..\..\..\version.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChordPro2HTML.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\chordpro_data.cpp" />
-    <ClCompile Include="..\src\chordpro_parser.cpp" />
-    <ClCompile Include="..\src\console_utf8.cpp" />
-    <ClCompile Include="..\src\file_system.cpp" />
-    <ClCompile Include="..\src\html_writer.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\..\..\src\chordpro_data.cpp" />
+    <ClCompile Include="..\..\..\src\chordpro_parser.cpp" />
+    <ClCompile Include="..\..\..\src\console_utf8.cpp" />
+    <ClCompile Include="..\..\..\src\file_system.cpp" />
+    <ClCompile Include="..\..\..\src\html_writer.cpp" />
+    <ClCompile Include="..\..\..\src\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
