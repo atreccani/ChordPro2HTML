@@ -58,16 +58,11 @@ using namespace std;
 class ChordProParser
 {
 public:
-	ChordProParser(const string &file_name) {
-		m_FileName = file_name;
+	ChordProParser(ChordProData &dst) : m_dst(dst)
+	{
 	}
 
-	bool loadFile();
-
-	bool parseTitle(void);
-	string &title();
-	void parseAll(ChordProData &dst);
-	void removeMultipleSpaces(ChordProData &lst);
+	bool parseAll();
 	void reinit(void);
 	song_element_t get(string &arg);
 
@@ -81,14 +76,9 @@ private:
 	song_element_t getDirective(string &arg);
 	void getText(string &arg);
 
-public:
-	string					m_Input;
-
 private:
-	string					m_FileName;
 	const char				*m_Pos;
-	string					m_Title;
-	list<string>			m_Subtitles;
+	ChordProData			&m_dst;
 
 };
 

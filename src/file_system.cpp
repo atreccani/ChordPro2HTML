@@ -81,7 +81,7 @@ const string getDirFiles(string folder, vector<FileInfo> &listing)
 	HANDLE hFind = ::FindFirstFile(str16.c_str(), &fd); 
 
 	if(hFind == INVALID_HANDLE_VALUE) {
-		fail << "Error(" << errno << ") opening " << folder << endl;
+		fail << u8"Error(" << errno << ") opening " << folder << endl;
 		return fail.str();
 	}
 
@@ -135,3 +135,24 @@ const string getDirFiles(string folder, vector<FileInfo> &listing)
 	return fail.str();
 }
 #endif
+
+bool loadTextFile(string &dst, string &fileName)
+{
+	// Read file assumed to be UTF-8 encoded
+	ifstream ifs(fileName);
+
+	// Open the file for reading
+	if (!ifs.is_open()) {
+		wcout << "Unable to open file" << endl;
+		return false;
+	}
+
+	stringstream ss;
+	ss << ifs.rdbuf();
+
+	dst = ss.str();
+
+	return true;
+
+}
+

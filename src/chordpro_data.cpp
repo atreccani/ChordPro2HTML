@@ -135,3 +135,38 @@ const char *ChordProData::getDescription(song_element_t it)
 	}
 	return "?";
 }
+
+void ChordProData::removeMultipleSpaces()
+{
+	bool newline_found = false;
+
+	list<chordpro_element_t>::iterator it = elements.begin();
+	while (it != elements.end()) {
+		if (newline_found) {
+			if (
+				(it->id == PARSED_ITEM_NEWLINE) ||
+				((it->id == PARSED_ITEM_TEXT) && (it->value.empty()))	/* nothing but whitespace */
+				) {
+				string Label(ChordProData::getDescription(it->id));
+				string Log = "Removing Id: " + Label + ", Val: " + it->value;
+
+				it = elements.erase(it);
+			}
+			else {
+				newline_found = false;
+				it++;
+			}
+		}
+		else {
+			if (it->id == PARSED_ITEM_NEWLINE) {
+				newline_found = true;
+			}
+			it++;
+		}
+	}
+	if (newline_found) {
+		elements.pop_back();
+	}
+}
+
+

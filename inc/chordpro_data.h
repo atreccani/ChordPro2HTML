@@ -127,8 +127,14 @@ public:
 
 	static song_element_t getEnDirective(string &label);
 	static const char *getDescription(song_element_t it);
+	void removeMultipleSpaces();
+
+public:
+	string					m_Input;
+	string					m_Title;
 
 private:
+	list<string>			m_Subtitles;
 	static const song_element_descript_t song_element_desc_list[];
 };
 

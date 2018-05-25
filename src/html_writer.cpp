@@ -12,6 +12,7 @@
 /* Application Local Include
 */
 #include "chordpro_parser.h"
+#include "console_utf8.h"
 #include "html_writer.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -39,21 +40,19 @@
 //                    C L A S S    D E F I N I T I O N S                    //
 //////////////////////////////////////////////////////////////////////////////
 
-/*
-<html>
-<head>
-	<title>Nel blu dipinto di blu</title>
-	<link href="./cantalagioia.css" rel="stylesheet" type="text/css">
-</head>
-
-<body>
-	<h1 class="Title">Nel blu dipinto di blu</h1>
-	<h2 class="Artist">(Domenico Modugno)</h2>
-*/
-
 HTMLWriter::HTMLWriter(const string &file_name)
 {
 	m_FileName = file_name;
+}
+
+void HTMLWriter::open(void)
+{
+	ofs.open(m_FileName, std::ofstream::out);
+
+	// If the function fails to open a file, the failbit state flag is set for the stream 
+	if (!ofs.is_open()) {
+		UTF8::cout << "Fail opening file: " << m_FileName;
+	}
 }
 
 size_t HTMLWriter::paint(ChordProData &src)
@@ -62,9 +61,21 @@ size_t HTMLWriter::paint(ChordProData &src)
 
 	string value;
 
-	writeUtf8("Ciao2");
+	if (!ofs.is_open()) {
+		return 0;
+	}
 
-	reinit();
+	/*
+	<html>
+		<head>
+		<title>Nel blu dipinto di blu</title>
+		<link href = "./cantalagioia.css" rel = "stylesheet" type = "text/css">
+		</head>
+	*/
+	ofs << "<html>" << endl;
+	ofs << "\t<head>" << endl;
+	ofs << "\t\t<title>" << src.m_Title << "</title>" << endl;
+	ofs << "\t</head>" << endl;
 
 	for (const chordpro_element_t &it : src.elements) {
 
@@ -93,6 +104,11 @@ size_t HTMLWriter::paint(ChordProData &src)
 	yMax -= LINE_SPACING;
 
 	return 0;
+}
+
+void HTMLWriter::close(void)
+{
+	ofs.close();
 }
 
 void HTMLWriter::reinit()
@@ -136,19 +152,5 @@ void HTMLWriter::putchord(string name)
 	if (xChords > xMax) {
 		xMax = xChords;
 	}
-}
-
-// To write std::u32string as utf8 text files:
-
-// Write file in UTF-8
-void HTMLWriter::writeUtf8(string str)
-{
-	// std::locale loc (std::locale(), new std::codecvt_utf8<wchar_t>);
-	// std::basic_ofstream<wchar_t> ofs (m_FileName);
-	// ofs.imbue(loc);
-
-	// string is assumed to be UTF-8 encoded already
-	std::ofstream ofs (m_FileName);
-	ofs << str;
 }
 

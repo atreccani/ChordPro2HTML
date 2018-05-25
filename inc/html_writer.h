@@ -59,7 +59,9 @@ class HTMLWriter
 {
 public:
 	HTMLWriter(const string &file_name);
+	void open(void);
 	size_t paint(ChordProData &src);
+	void close(void);
 
 private:
 	void reinit(void);
@@ -67,9 +69,9 @@ private:
 	void putlyrics(string scan);
 	void putchord(string name);
 
-	void writeUtf8(string output);
-
 private:
+	ofstream ofs;
+
 	string		m_FileName;
 	int xLyrics;
 	int xChords;

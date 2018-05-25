@@ -44,109 +44,38 @@ using namespace std;
 //                    C L A S S    D E F I N I T I O N S                    //
 //////////////////////////////////////////////////////////////////////////////
 
-bool ChordProParser::loadFile()
-{
-	// Read file assumed to be UTF-8 encoded
-	ifstream ifs(m_FileName);
-
-	// Open the file for reading
-	if (!ifs.is_open()) {
-		wcout << "Unable to open file" << endl;
-		return false;
-	}
-
-	stringstream ss;
-	ss << ifs.rdbuf();
-
-	m_Input = ss.str();
-
-	return true;
-
-}
-
-bool ChordProParser::parseTitle(void)
-{
-	string dir_value;
-	song_element_t it;
-
-	reinit();
-
-	while ((it = get(dir_value)) != PARSED_ITEM_NONE) {
-		switch (it) {
-		case PARSED_ITEM_DIRECTIVE_TITLE:
-			m_Title = dir_value;
-			break;
-		case PARSED_ITEM_DIRECTIVE_SUBTITLE:
-			m_Subtitles.push_back(dir_value);
-			break;
-		default:
-			break;
-		}
-	}
-
-	if (m_Title.empty()) {
-		return false;
-	}
-	return true;
-}
-
-string &ChordProParser::title()
-{
-	return m_Title;
-}
-
-void ChordProParser::parseAll(ChordProData	&dst)
+bool ChordProParser::parseAll()
 {
 	// List of elements parsed from file
 	chordpro_element_t song_elem;
 
+	m_dst.m_Title.clear();
+
 	reinit();
 	while ((song_elem.id = get(song_elem.value)) != PARSED_ITEM_NONE) {
-		dst.elements.push_back(song_elem);
-	}
-
-}
-
-void ChordProParser::removeMultipleSpaces(ChordProData &lst)
-{
-	bool newline_found = false;
-
-	list<chordpro_element_t>::iterator it = lst.elements.begin();
-	while (it != lst.elements.end()) {
-		if (newline_found) {
-			if (
-				(it->id == PARSED_ITEM_NEWLINE) || 
-				((it->id == PARSED_ITEM_TEXT) && (it->value.empty()))	/* nothing but whitespace */
-			) {
-				string Label(ChordProData::getDescription(it->id));
-				string Log = "Removing Id: " + Label + ", Val: " + it->value;
-
-				it = lst.elements.erase(it);
-			} else {
-				newline_found = false;
-				it++;
+		m_dst.elements.push_back(song_elem);
+		if (m_dst.m_Title.empty()) {
+			/*	To be a valid ChordPro file it should contain the title in the
+			first 20 directives */
+			if (m_dst.elements.size() > 20) {
+				return false;
+			}
+			if (song_elem.id == PARSED_ITEM_DIRECTIVE_TITLE) {
+				m_dst.m_Title = song_elem.value;
 			}
 		}
-		else {
-			if (it->id == PARSED_ITEM_NEWLINE) {
-				newline_found = true;
-			}
-			it++;
-		}
 	}
-	if (newline_found) {
-		lst.elements.pop_back();
-	}
+	return true;
 }
 
 void ChordProParser::reinit(void)
 {
-	m_Pos = m_Input.c_str();
+	m_Pos = m_dst.m_Input.c_str();
 }
 
 song_element_t ChordProParser::get(string &arg)
 {
-	if (m_Pos >= m_Input.c_str() + m_Input.size()) {
+	if (m_Pos >= m_dst.m_Input.c_str() + m_dst.m_Input.size()) {
 		return PARSED_ITEM_NONE;
 	}
 
@@ -182,7 +111,7 @@ song_element_t ChordProParser::get(string &arg)
 
 bool ChordProParser::isLineBegin(void)
 {
-	if (m_Pos == m_Input.c_str()) {
+	if (m_Pos == m_dst.m_Input.c_str()) {
 		// beginning of first  line
 		return true;
 	}
@@ -202,7 +131,7 @@ song_element_t ChordProParser::item_starting()
 void ChordProParser::getComment(string &arg)
 {
 	m_Pos++;
-	while (m_Pos < m_Input.c_str() + m_Input.size()) {
+	while (m_Pos < m_dst.m_Input.c_str() + m_dst.m_Input.size()) {
 		if (*m_Pos == '\n') {
 			// Comment stops at the end of line
 			m_Pos++;	// skip '\n'
@@ -216,7 +145,7 @@ void ChordProParser::getComment(string &arg)
 void ChordProParser::getChord(string &arg)
 {
 	m_Pos++;	// skip '['
-	while (m_Pos < m_Input.c_str() + m_Input.size()) {
+	while (m_Pos < m_dst.m_Input.c_str() + m_dst.m_Input.size()) {
 		if (*m_Pos == ']') {
 			// Chord stop when ] is found 
 			m_Pos++;	// skip ']'
@@ -233,7 +162,7 @@ song_element_t ChordProParser::getDirective(string &arg)
 	bool separator_found = false;
 
 	m_Pos++;	// skip '{'
-	while (m_Pos < m_Input.c_str() + m_Input.size()) {
+	while (m_Pos < m_dst.m_Input.c_str() + m_dst.m_Input.size()) {
 
 		if (*m_Pos == '}') {
 			// Directive end
@@ -264,7 +193,7 @@ void ChordProParser::getText(string &arg)
 	arg += *m_Pos;
 	m_Pos++;
 
-	while (m_Pos < m_Input.c_str() + m_Input.size()) {
+	while (m_Pos < m_dst.m_Input.c_str() + m_dst.m_Input.size()) {
 
 		if ( item_starting() != PARSED_ITEM_NONE)  {
 			// Something different from normal text is starting

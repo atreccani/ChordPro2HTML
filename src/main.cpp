@@ -42,53 +42,38 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////
 
 
-void fill_chordpro_file_list(list <ChordProParser *> &list_ref)
+void fill_chordpro_file_list(string pathIn, list <ChordProData> &list_ref)
 {
-	string pathIn = "../default_in";
 	vector<FileInfo> filesInfo;
 
+	// List of parsed elements
+	ChordProData chord_pro_data;
+
 	// List of all files in input directory (not necessarily all are chordpro files)
-	getDirFiles(pathIn, filesInfo);
+	const string err_str = getDirFiles(pathIn, filesInfo);
+
+	if (!err_str.empty()) {
+		UTF8::cout << err_str;
+		return;
+	}
 
 	vector<FileInfo>::iterator it;
 	for (it = filesInfo.begin(); it != filesInfo.end(); ++it) {
 
 		// A valid ChordPro file it should be less than 100k (it's a plain text file!)
 		if (it->size < (100 * 1024)) {
-			ChordProParser *parser = new ChordProParser(pathIn + "/" + it->name);
 
-			if (parser->loadFile()) {
+			// Load file in memory
+			if (loadTextFile(chord_pro_data.m_Input, pathIn + "/" + it->name)) {
 				// To be a valid ChordPro file it should contain title directive in first 1k
-				if (parser->parseTitle()) {
-					list_ref.push_back(parser);
+				ChordProParser *parser = new ChordProParser(chord_pro_data);
+				if(parser->parseAll()) {
+					list_ref.push_back(chord_pro_data);
 				}
 			}
 		}
 	}
 }
-
-// Create the svg file for the given song
-void createHTML(ChordProParser *act_song)
-{
-	// Set the destination .svg file name changing extension to the source .pro file name
-	const string path = "../default_out/test.html";
-
-	// List of parsed elements
-	ChordProData chord_pro_data;
-
-	// Parse all elements of the song
-	act_song->parseAll(chord_pro_data);
-
-	act_song->removeMultipleSpaces(chord_pro_data);
-
-
-	HTMLWriter writer(path);
-
-	writer.paint(chord_pro_data);
-
-
-}
-
 
 /*
 	Important note: all strings are represented internally in utf-8 coding.
@@ -98,7 +83,7 @@ void createHTML(ChordProParser *act_song)
 
 int main(int argc, char *argv[])
 {
-	list <ChordProParser *> song_list;
+	list <ChordProData> song_list;
 
 	UTF8::init();
 
@@ -119,23 +104,36 @@ int main(int argc, char *argv[])
 		"../default_out/log.txt", ios_base::out | ios_base::app);
 
 	// Fill a list of valid ChordPro files, each file will also be fully loaded into memory (as an utf8 encoded string)
-	fill_chordpro_file_list(song_list);
+	fill_chordpro_file_list("../../../default_in", song_list);
 
 	// Print a list of found ChordPro files
 	string size_str = to_string(song_list.size());
 	UTF8::cout << "Found " << size_str << " ChordPro files:" << endl;
 	
-	list<ChordProParser *>::iterator it;
+	list<ChordProData>::iterator it;
 	for (it = song_list.begin(); it != song_list.end(); ++it) {
-		UTF8::cout << " - " << (*it)->title() << endl;
+		UTF8::cout << " - " << it->m_Title << endl;
 	}
 	UTF8::cout << endl;
 
-	ChordProParser *act_song = song_list.front();
-	UTF8::cout << act_song->m_Input << endl;
+	if(!song_list.empty()) {
+		ChordProData &act_song = song_list.front();
+		UTF8::cout << act_song.m_Input << endl;
 
-	// Create the svg file of the song
-	createHTML(act_song);
+		act_song.removeMultipleSpaces();
+
+		// Create the HTML file of the song
+		// Set the destination .svg file name changing extension to the source .pro file name
+
+		HTMLWriter writer("../../../default_out/test.html");
+
+		writer.open();
+
+		writer.paint(act_song);
+
+		writer.close();
+
+	}
 
 	// Windows specific pause
 	system("pause");
